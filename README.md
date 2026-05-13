@@ -1,39 +1,135 @@
-#CULTRACHAIN
-#Scenario
-CulturePass is a city-wide cultural access network. Museums, art galleries, theaters, concert halls, and heritage sites register as venues on a shared smart contract platform. Users purchase a monthly pass that mints a bundle of Tickets (an ERC-1155-compatible token) to their wallet. They redeem these tickets to gain entry to any registered venue. Venues withdraw their accumulated earnings at the end of each billing period.
+🎭 CulturePass
 
-Passes come in three tiers that differ in ticket allowance and in how many times per month a visitor may enter a given venue category (e.g. museum, theater, gallery, heritage) or a specific venue: Explorer (up to 3 visits/month per category and per venue), Enthusiast (up to 6 visits/month), and Patron (up to 10 visits/month). The EntryLedger enforces these caps on-chain, resetting counters at the start of each calendar month.
+📌 Overview
 
-In addition to the monthly cap, every venue declares a maximum daily capacity — the total number of visitors it can admit on a single calendar day. The EntryLedger enforces two independent caps simultaneously: the monthly visit cap and the daily capacity cap. A visitor's redeem() call reverts if either cap is exceeded. This means a popular venue can block further entry for the rest of the day even when visitors still have remaining monthly quota.
+CulturePass is a city-wide cultural access network powered by smart contracts. It enables visitors to explore museums, galleries, theaters, concert halls, and heritage sites using a unified on-chain ticketing system. Users purchase a monthly pass that mints ERC-1155 compatible Tickets to their wallet. These tickets can be redeemed across registered venues, while smart contracts enforce strict monthly and daily access limits. Venues receive on-chain payments and can withdraw earnings at the end of each billing cycle.
 
-The platform is governed by an admin (the CulturePass foundation) who whitelists venues, sets pass tiers, and manages the ticket-to-ETH exchange rate. No central intermediary holds user funds: payments flow directly through the contracts.
+🏗️ System Architecture
 
-#Stakeholders
+The platform consists of three main components:
 
-Admin:   Deploys and configures the platform; whitelists venues; sets pass tiers and exchange rate
-Visitor: Purchases a pass; holds Tickets; redeems entry at venues
-Venue:	 Registered cultural provider; sets entry price and daily capacity; accepts entry; withdraws earnings
+Pass System → Handles subscription tiers and ticket minting
 
-#User Stories
-Admin
-US-A1: As an admin, I want to register and whitelist a venue (by wallet address, name, venue ID, category, and maximum daily visitor capacity) so that visitors can redeem entry there and both visit caps can be enforced.
-US-A2: As an admin, I want to remove a venue from the whitelist so that it can no longer accept new entries.
-US-A3: As an admin, I want to define pass tiers (e.g. Explorer: 30 Tickets / month at 0.01 ETH, Enthusiast: 60 Tickets / month at 0.02 ETH, Patron: 100 Tickets / month at 0.03 ETH) and set the ticket-to-ETH exchange rate so that visitors can choose a plan and venues can be paid fairly.
+EntryLedger → Enforces visit limits and daily capacity rules
 
-Visitor
-US-V1: As a visitor, I want to purchase a monthly pass tier by sending ETH so that I receive the corresponding Ticket balance.
-US-V2: As a visitor, I want to renew my pass before it expires so that my Ticket balance is topped up and my pass period is extended.
-US-V3: As a visitor with an expired pass, I want to be prevented from redeeming entry so that the system enforces the pass requirement.
-US-V4: As a visitor, I want to redeem entry to a registered venue by spending the required tickets so that my visit is recorded on-chain.
-US-V5: As a visitor, I want to be blocked from entering once I have reached my tier's monthly visit cap for a specific venue category or for a specific venue so that the system enforces the tier limits.
-US-V6: As a visitor, I want to be blocked from entering a venue that has reached its maximum daily visitor capacity so that crowd limits are respected.
-US-V7: As a visitor, I want to view my current ticket balance, pass expiry, remaining monthly visits per category and venue, and today's remaining capacity at any venue so that I can plan my cultural outings.
+Venue Registry → Manages whitelisted cultural venues
 
-Venue
-US-E1: As a venue, I want to set and update my standard entry price in tickets and my maximum daily visitor capacity so that I can reflect real-world admission fees and manage crowd flow.
-US-E2: As a venue, I want to receive a ticket allocation whenever a visitor redeems entry at my location so that my earnings accumulate on-chain.
-US-E3: As a venue, I want to withdraw my accumulated tickets (converted to ETH at the current exchange rate) so that I receive payment for the visits I provided.
-US-E4: As a venue, I want to view my total accumulated earnings so that I can track revenue before withdrawing.
+👥 Stakeholders
 
-#MoreInFuture
-Please stay tuned for the platform development its ongoing.
+🛠️ Admin (CulturePass Foundation)
+
+Deploys and manages the platform
+Whitelists and removes venues
+Defines pass tiers and pricing
+Sets ticket-to-ETH exchange rate
+
+🎟️ Visitor
+
+Purchases monthly passes
+Receives ERC-1155 Tickets
+Redeems entry at venues
+Enforced by monthly and daily limits
+
+🏛️ Venue
+
+Registers cultural locations
+Sets entry price and daily capacity
+Receives ticket payments
+Withdraws accumulated earnings
+
+📖 User Stories
+
+🛠️ Admin
+
+US-A1: Register and whitelist a venue with metadata (address, name, ID, category, daily capacity)
+
+US-A2: Remove a venue from whitelist
+
+US-A3: Define pass tiers and ticket pricing
+
+🎟️ Visitor
+
+US-V1: Purchase a monthly pass and receive Tickets
+
+US-V2: Renew pass before expiry
+
+US-V3: Be blocked from redeeming if pass is expired
+
+US-V4: Redeem entry using tickets
+
+US-V5: Be blocked after reaching monthly visit caps per category or venue
+
+US-V6: Be blocked if venue reaches daily capacity
+
+US-V7: View ticket balance, expiry, and remaining visit limits
+
+🏛️ Venue
+
+US-E1: Set and update entry price and daily capacity
+
+US-E2: Receive ticket payments on visitor entry
+
+US-E3: Withdraw accumulated earnings in ETH
+
+US-E4: View total earnings before withdrawal
+
+🔁 Key Rules & Constraints
+
+📅 Monthly Limits
+
+Reset at the start of each calendar month
+
+Enforced per: Venue category & Individual venue
+
+🏟️ Daily Capacity
+
+Each venue sets a maximum visitor limit per day
+Once reached, no further entries are allowed that day
+
+❌ Entry Reverts If:
+
+Pass is expired
+
+Monthly limit exceeded
+
+Venue capacity reached
+
+Insufficient ticket balance
+
+💸 Payment Flow
+
+Visitor purchases pass with ETH
+
+Contract mints ERC-1155 Tickets
+
+Visitor redeems tickets at venue
+
+Tickets are recorded as earnings
+
+Venue withdraws ETH at end of billing cycle
+
+🔐 Security Model
+
+No centralized custody of user funds
+
+All payments handled by smart contracts
+
+Whitelisted venue system prevents abuse
+
+On-chain enforcement of all limits
+
+🚀 Future Improvements
+
+Dynamic pricing based on demand
+
+NFT-based loyalty rewards
+
+Off-chain indexing for analytics dashboard
+
+Multi-city expansion support
+
+DAO governance for admin control
+
+📦 Status
+
+🟡 Project is currently in development — more features coming soon.
