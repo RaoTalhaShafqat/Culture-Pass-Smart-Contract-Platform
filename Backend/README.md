@@ -1,66 +1,77 @@
-## Foundry
+# About 
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This is a code base for Culture-Pass-Platform done as an assignment for Internship in TU-Berlin.
 
-Foundry consists of:
+# Getting Started
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Requirements 
 
-## Documentation
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+ 
+  - If you have done it right you can run:
+  ```bash
+  git --version
+  ```
+  - You should see something like:
+  ```bash
+  git version x.x.x
+  ```
+  
+- [foundry](https://getfoundry.sh/)
+  - You will know you did it right if you can run:
+  ```bash
+  forge --version
+  ```
+  - You should see something like:
+  ```bash
+  forge Version: 1.7.1
+  Build Timestamp: 2026-05-08T07:50:55.527285345Z
+  ```
 
-https://book.getfoundry.sh/
+ ## Quickstart
 
-## Usage
+ ```
+ git clone https://github.com/RaoTalhaShafqat/Culture-Pass-Smart-Contract-Platform.git
+ cd Culture-Pass-Smart-Contract-Platform
+ forge build
+ ``` 
 
-### Build
+ ## Developernote
 
-```shell
-$ forge build
-```
+ - Always refer to the MakeFile in the project as it is there to build you and run things as smooth as possible.
+ - Never push .env file to github and never have your private Keys in .env file.
+ - For the project Explanation if needed always refer to the ReadMe on the main branch and not this ReadMe in the backend folder.
+ - Always refer to NatSpec contract documentation kind of like Javadocs as they have specific info for Developers.
 
-### Test
+ ## Soliditycontractlayout
+ - Please make sure to follow this exact Layout as this would make your code readable for other developers.
 
-```shell
-$ forge test
-```
+  Layout of Contract:
+ - version
+ - imports
+ - errors
+ - interfaces, libraries, contracts
+ - Type declarations
+ - State variables
+ - Events
+ - Modifiers
+ - Functions
 
-### Format
+ - Layout of Functions:
+ - constructor
+ - receive function (if exists)
+ - fallback function (if exists)
+ - external
+ - public
+ - internal
+ - private
+ - view & pure functions
+ 
+  
+  
 
-```shell
-$ forge fmt
-```
 
-### Gas Snapshots
 
-```shell
-$ forge snapshot
-```
 
-### Anvil
 
-```shell
-$ anvil
-```
 
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
