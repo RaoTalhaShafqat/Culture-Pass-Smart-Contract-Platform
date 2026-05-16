@@ -38,7 +38,7 @@ This is a code base for Culture-Pass-Platform done as an assignment for Internsh
 
  ## Developernote
 
- - Always refer to the MakeFile in the project as it is there to build you and run things as smooth as possible.
+ - Always refer to the MakeFile in the project as it is there to build your automation commands and run things as smooth as possible.
  - Never push .env file to github and never have your private Keys in .env file.
  - For the project Explanation if needed always refer to the ReadMe on the main branch and not this ReadMe in the backend folder.
  - Always refer to NatSpec contract documentation kind of like Javadocs as they have specific info for Developers.
