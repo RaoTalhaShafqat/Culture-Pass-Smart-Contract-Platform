@@ -1,0 +1,6 @@
+TicketTokenTest:testBurningTickets() (gas: 54008)
+TicketTokenTest:testBurningTicketsUnauthorized() (gas: 14083)
+TicketTokenTest:testMintingTickets() (gas: 47380)
+TicketTokenTest:testMintingTicketsUnauthorized() (gas: 14176)
+TicketTokenTest:testSettingCulturePassAddress() (gas: 17238)
+TicketTokenTest:testSettingCulturePassAddressUnauthorized() (gas: 16032)

@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract TicketToken is ERC1155, Ownable {
     /*Errors*/
-    error Unauthorized();
+    error TicketToken__Unauthorized();
 
     uint256 private constant TICKET = 0;
     address private culturePassAddress;
@@ -20,7 +20,7 @@ contract TicketToken is ERC1155, Ownable {
     /*Modifiers*/
     modifier onlyCulturePass() {
         if (msg.sender != culturePassAddress) {
-            revert Unauthorized();
+            revert TicketToken__Unauthorized();
         }
         _;
     }
