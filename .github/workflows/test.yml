@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  check:
-    name: Foundry project
+  foundry-test:
+    name: Foundry Tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
