@@ -38,10 +38,11 @@ This is a code base for Culture-Pass-Platform done as an assignment for Internsh
 
  ## Developernote
 
- - Always refer to the MakeFile in the project as it is there to build your automation commands and run things as smooth as possible.
+ - Tip please make your own MakeFile to automate all the commands to speed up development Process.
  - Never push .env file to github and never have your private Keys in .env file.
  - For the project Explanation if needed always refer to the ReadMe on the main branch and not this ReadMe in the backend folder.
  - Always refer to NatSpec contract documentation kind of like Javadocs as they have specific info for Developers.
+ - If you paste your private Key by mistake make sure to run these commands in your active Bash Terminal `history -c` and then go to your parent directory and run `rm .bash_history` .
 
  ## Soliditycontractlayout
  - Please make sure to follow this exact Layout as this would make your code readable for other developers.
