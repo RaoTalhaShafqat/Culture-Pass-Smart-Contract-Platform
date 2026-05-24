@@ -27,9 +27,7 @@ contract TicketToken is ERC1155, Ownable {
 
     constructor() ERC1155("") Ownable(msg.sender) {}
 
-    function setCulturePassAddress(
-        address _culturePassAddress
-    ) external onlyOwner {
+    function setCulturePassAddress(address _culturePassAddress) external onlyOwner {
         culturePassAddress = _culturePassAddress;
     }
 
