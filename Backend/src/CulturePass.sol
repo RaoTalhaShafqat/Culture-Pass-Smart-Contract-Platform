@@ -11,11 +11,21 @@ import "./TicketToken.sol";
  * @dev Please follow the documentation for each function to understand the specific business logic implemented for each role. The contract defines functions for Admin to manage Venues and Events, for Visitors to purchase tickets, and for Venues to withdraw funds.
  */
 contract CulturePass is Ownable {
+    /*Errors*/
+    error CulturePass__invalidWalletAddress();
+    error CulturePass__invalidEntryPrice();
+    error CulturePass__invalidDailyCapacity();
+    error CulturePass__invalidName();
+    error CulturePass__venueAlreadyExists();
+    error CulturePass__falseCategory();
+    error CulturePass__venueNotFound();
+
     TicketToken public c_ticketToken;
 
     uint256 public s_exchangeRate;
 
     enum Category {
+        None,
         Museum,
         Theater,
         Gallery,
@@ -23,6 +33,7 @@ contract CulturePass is Ownable {
     } //More categories can be added as needed
 
     enum Tier {
+        None,
         Explorer,
         Enthusiast,
         Patron
@@ -64,6 +75,45 @@ contract CulturePass is Ownable {
     }
 
     /*Admin Functions*/
+
+    /**
+     * @notice Admin function to register a new venue on the platform.
+     * @dev Rao Talha Shafqat -See the Venue struct for details on the parameters.
+     */
+    function registerVenue(
+        uint256 _venueId,
+        string memory _name,
+        address _wallet,
+        Category _category,
+        uint256 _entryPrice,
+        uint256 _dailyCapacity
+    ) external onlyOwner {
+        require(_wallet != address(0), CulturePass__invalidWalletAddress());
+        require(_entryPrice > 0, CulturePass__invalidEntryPrice());
+        require(_dailyCapacity > 0, CulturePass__invalidDailyCapacity());
+        require(bytes(_name).length > 0, CulturePass__invalidName());
+        require(_category != Category.None, CulturePass__falseCategory());
+        require(s_venues[_venueId].wallet == address(0), CulturePass__venueAlreadyExists());
+
+        s_venues[_venueId] = Venue({
+            venueId: _venueId,
+            name: _name,
+            wallet: _wallet,
+            category: _category,
+            entryPrice: _entryPrice,
+            dailyCapacity: _dailyCapacity,
+            isActive: true
+        });
+    }
+
+    /**
+     * @notice Admin function to remove a venue from the platform.
+     * @dev Rao Talha Shafqat - This function does not delete the venue from storage but marks it as inactive.
+     */
+    function removeVenue(uint256 _venueId) external onlyOwner {
+        require(s_venues[_venueId].wallet != address(0), CulturePass__venueNotFound());
+        s_venues[_venueId].isActive = false; //This is more gas efficient than deleting the venue from storage.
+    }
 
     /*Visitor Functions*/
 
