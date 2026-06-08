@@ -12,6 +12,7 @@ import {TicketToken} from "./TicketToken.sol";
  * @notice This contract allows the platform to manage the business logic for Admin, Visitor and Venue roles. It interacts with the TicketToken contract to mint and burn ERC1155 tokens representing tickets.
  * @dev Please follow the documentation for each function to understand the specific business logic implemented for each role. The contract defines functions for Admin to manage Venues and Events, for Visitors to purchase tickets, and for Venues to withdraw funds.
  */
+
 contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /*Errors*/
     error CulturePass__invalidWalletAddress();
@@ -26,6 +27,13 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     error CulturePass__passStillNOTExpired();
     error CulturePass__passExpired();
     error CulturePass__noActivePass();
+    error CulturePass__montlyLimitReachedForPass();
+    error CulturePass__montlyLimitReachedForVenue();
+    error CulturePass__venueClosedForTheDay();
+    error CulturePass__notVenueOwner();
+    error CulturePass__noEarningsToWithdraw();
+    error CulturePass__withdrawalFailed();
+    error CulturePass__exchangeRateNotSet();
 
     TicketToken public c_ticketToken;
 
@@ -180,5 +188,86 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         c_ticketToken.mint(msg.sender, s_passTiers[userPass.tier].monthlyTickets);
         s_userPasses[msg.sender].expiry += 30 days; // Extend the expiry by another month
     }
+
+    /**
+     * @notice Function for users to redeemEntry to venues.
+     * @dev Rao Talha Shafqat - The user can redeem Entry to their favourite Venue listed on Platform with their monthly and daily visit checks.
+     */
+    function redeemEntry(uint256 _venueId) external {
+        UserPass memory userPass = s_userPasses[msg.sender];
+        require(block.timestamp < userPass.expiry, CulturePass__passExpired());
+
+        Venue memory venue = s_venues[_venueId];
+        require(venue.isActive, CulturePass__venueNotFound());
+
+        uint256 currentMonth = block.timestamp / 30 days;
+        uint256 currentDay = block.timestamp / 1 days;
+
+        uint256 maxVisits = s_passTiers[userPass.tier].monthlyVisitCap;
+        require(
+            s_categoryVisits[msg.sender][currentMonth][venue.category] < maxVisits,
+            CulturePass__montlyLimitReachedForPass()
+        );
+        require(
+            s_venueVisits[msg.sender][currentMonth][_venueId] < maxVisits, CulturePass__montlyLimitReachedForVenue()
+        );
+        require(s_venueDailyVisits[_venueId][currentDay] < venue.dailyCapacity, CulturePass__venueClosedForTheDay());
+
+        c_ticketToken.burn(msg.sender, venue.entryPrice); //This will revert if Users do not have enough TicketTokens.
+        s_categoryVisits[msg.sender][currentMonth][venue.category]++;
+        s_venueVisits[msg.sender][currentMonth][_venueId]++;
+        s_venueDailyVisits[_venueId][currentDay]++;
+
+        s_venueEarnings[venue.wallet] += venue.entryPrice;
+    }
+
     /*Venue Functions*/
+    /**
+     * @notice Allows a venue to update its entry price and daily capacity.
+     * @dev Yusuf Arslan - Only callable by the venue's own registered wallet (US-E1).
+     */
+    function updateVenue(uint256 _venueId, uint256 _newEntryPrice, uint256 _newDailyCapacity) external {
+        Venue storage venue = s_venues[_venueId];
+        require(venue.wallet != address(0), CulturePass__venueNotFound());
+        require(venue.wallet == msg.sender, CulturePass__notVenueOwner());
+        require(_newEntryPrice > 0, CulturePass__invalidEntryPrice());
+        require(_newDailyCapacity > 0, CulturePass__invalidDailyCapacity());
+
+        venue.entryPrice = _newEntryPrice;
+        venue.dailyCapacity = _newDailyCapacity;
+    }
+
+    /**
+     * @notice Allows a venue to withdraw accumulated earnings converted to ETH.
+     * @dev Yusuf Arslan - Zeroes balance before transferring to prevent reentrancy (US-E3).
+     */
+    function withdrawEarnings() external {
+        require(s_exchangeRate > 0, CulturePass__exchangeRateNotSet());
+
+        uint256 tickets = s_venueEarnings[msg.sender];
+        require(tickets > 0, CulturePass__noEarningsToWithdraw());
+
+        uint256 ethAmount = tickets * s_exchangeRate;
+        require(address(this).balance >= ethAmount, CulturePass__insufficientFunds());
+
+        // Zero out BEFORE transferring — prevents reentrancy attack
+        s_venueEarnings[msg.sender] = 0;
+
+        (bool success,) = payable(msg.sender).call{value: ethAmount}("");
+        require(success, CulturePass__withdrawalFailed());
+    }
+
+    /**
+     * @notice Returns accumulated ticket earnings and their ETH value for a venue.
+     * @dev Yusuf Arslan - US-E4. View function, free to call.
+     */
+    function getVenueEarnings(address _venueWallet) external view returns (uint256 tickets, uint256 ethValue) {
+        tickets = s_venueEarnings[_venueWallet];
+        ethValue = s_exchangeRate > 0 ? tickets * s_exchangeRate : 0;
+    }
+
+    /**
+     * @notice Allows the contract to receive ETH from pass purchases.
+     * @dev Yusuf Arslan - Required so the contract can hold ETH to pay venues on withdrawal.
+     */
 }
