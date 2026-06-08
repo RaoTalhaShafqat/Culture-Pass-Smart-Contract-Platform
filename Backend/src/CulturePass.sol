@@ -79,8 +79,10 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     mapping(uint256 => Venue) public s_venues; // Whitelist of venues with their details
     mapping(Tier => PassTier) public s_passTiers; //List of pass tiers with their details
     mapping(address => UserPass) public s_userPasses; // Mapping of user addresses to their pass details
-    mapping(address => mapping(uint256 => mapping(Category => uint256))) public s_categoryVisits; //user => month => category => visit count
-    mapping(address => mapping(uint256 => mapping(uint256 => uint256))) public s_venueVisits; //user => month => venueId => visit count
+    mapping(address => mapping(uint256 => mapping(Category => uint256)))
+        public s_categoryVisits; //user => month => category => visit count
+    mapping(address => mapping(uint256 => mapping(uint256 => uint256)))
+        public s_venueVisits; //user => month => venueId => visit count
     mapping(uint256 => mapping(uint256 => uint256)) public s_venueDailyVisits; //venueId => day => visit count
     mapping(address => uint256) public s_venueEarnings; // Mapping of venue addresses to their accumulated balances from ticket sales
 
@@ -92,12 +94,17 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         //_disableInitializers();//This is for later do not uncomment.
     }
 
-    function initialize(address _ticketTokenAddress, address _initialOwner) external initializer {
+    function initialize(
+        address _ticketTokenAddress,
+        address _initialOwner
+    ) external initializer {
         __Ownable_init(_initialOwner);
         c_ticketToken = TicketToken(_ticketTokenAddress);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 
     /*Admin Functions*/
 
@@ -118,7 +125,10 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(_dailyCapacity > 0, CulturePass__invalidDailyCapacity());
         require(bytes(_name).length > 0, CulturePass__invalidName());
         require(_category != Category.None, CulturePass__falseCategory());
-        require(s_venues[_venueId].wallet == address(0), CulturePass__venueAlreadyExists());
+        require(
+            s_venues[_venueId].wallet == address(0),
+            CulturePass__venueAlreadyExists()
+        );
 
         s_venues[_venueId] = Venue({
             venueId: _venueId,
@@ -136,7 +146,10 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @dev Rao Talha Shafqat - This function does not delete the venue from storage but marks it as inactive.
      */
     function removeVenue(uint256 _venueId) external onlyOwner {
-        require(s_venues[_venueId].wallet != address(0), CulturePass__venueNotFound());
+        require(
+            s_venues[_venueId].wallet != address(0),
+            CulturePass__venueNotFound()
+        );
         s_venues[_venueId].isActive = false; //This is more gas efficient than deleting the venue from storage.
     }
 
@@ -152,13 +165,18 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @notice Admin function to set the details of a pass tier.
      * @dev Rao Talha Shafqat - This function allows the admin to define different tiers of passes with varying benefits and prices.
      */
-    function setPassTier(Tier _tier, uint256 _monthlyTickets, uint256 _priceETH, uint256 _monthlyVisitCap)
-        external
-        onlyOwner
-    {
+    function setPassTier(
+        Tier _tier,
+        uint256 _monthlyTickets,
+        uint256 _priceETH,
+        uint256 _monthlyVisitCap
+    ) external onlyOwner {
         require(_tier != Tier.None, CulturePass__invalidTier());
-        s_passTiers[_tier] =
-            PassTier({monthlyTickets: _monthlyTickets, priceETH: _priceETH, monthlyVisitCap: _monthlyVisitCap});
+        s_passTiers[_tier] = PassTier({
+            monthlyTickets: _monthlyTickets,
+            priceETH: _priceETH,
+            monthlyVisitCap: _monthlyVisitCap
+        });
     }
 
     /*Visitor Functions*/
@@ -168,11 +186,20 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      */
     function purchasePass(Tier _tier) external payable {
         PassTier memory passTier = s_passTiers[_tier];
-        require(msg.value == passTier.priceETH, CulturePass__insufficientFunds());
+        require(
+            msg.value == passTier.priceETH,
+            CulturePass__insufficientFunds()
+        );
         UserPass memory userPass = s_userPasses[msg.sender];
-        require(userPass.expiry < block.timestamp, CulturePass__passStillNOTExpired());
+        require(
+            userPass.expiry < block.timestamp,
+            CulturePass__passStillNOTExpired()
+        );
         c_ticketToken.mint(msg.sender, passTier.monthlyTickets);
-        s_userPasses[msg.sender] = UserPass({tier: _tier, expiry: block.timestamp + 30 days});
+        s_userPasses[msg.sender] = UserPass({
+            tier: _tier,
+            expiry: block.timestamp + 30 days
+        });
     }
 
     /**
@@ -184,8 +211,14 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         require(userPass.expiry != 0, CulturePass__noActivePass());
         require(block.timestamp < userPass.expiry, CulturePass__passExpired());
-        require(msg.value == s_passTiers[userPass.tier].priceETH, CulturePass__insufficientFunds());
-        c_ticketToken.mint(msg.sender, s_passTiers[userPass.tier].monthlyTickets);
+        require(
+            msg.value == s_passTiers[userPass.tier].priceETH,
+            CulturePass__insufficientFunds()
+        );
+        c_ticketToken.mint(
+            msg.sender,
+            s_passTiers[userPass.tier].monthlyTickets
+        );
         s_userPasses[msg.sender].expiry += 30 days; // Extend the expiry by another month
     }
 
@@ -205,13 +238,18 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         uint256 maxVisits = s_passTiers[userPass.tier].monthlyVisitCap;
         require(
-            s_categoryVisits[msg.sender][currentMonth][venue.category] < maxVisits,
+            s_categoryVisits[msg.sender][currentMonth][venue.category] <
+                maxVisits,
             CulturePass__montlyLimitReachedForPass()
         );
         require(
-            s_venueVisits[msg.sender][currentMonth][_venueId] < maxVisits, CulturePass__montlyLimitReachedForVenue()
+            s_venueVisits[msg.sender][currentMonth][_venueId] < maxVisits,
+            CulturePass__montlyLimitReachedForVenue()
         );
-        require(s_venueDailyVisits[_venueId][currentDay] < venue.dailyCapacity, CulturePass__venueClosedForTheDay());
+        require(
+            s_venueDailyVisits[_venueId][currentDay] < venue.dailyCapacity,
+            CulturePass__venueClosedForTheDay()
+        );
 
         c_ticketToken.burn(msg.sender, venue.entryPrice); //This will revert if Users do not have enough TicketTokens.
         s_categoryVisits[msg.sender][currentMonth][venue.category]++;
@@ -226,7 +264,11 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @notice Allows a venue to update its entry price and daily capacity.
      * @dev Yusuf Arslan - Only callable by the venue's own registered wallet (US-E1).
      */
-    function updateVenue(uint256 _venueId, uint256 _newEntryPrice, uint256 _newDailyCapacity) external {
+    function updateVenue(
+        uint256 _venueId,
+        uint256 _newEntryPrice,
+        uint256 _newDailyCapacity
+    ) external {
         Venue storage venue = s_venues[_venueId];
         require(venue.wallet != address(0), CulturePass__venueNotFound());
         require(venue.wallet == msg.sender, CulturePass__notVenueOwner());
@@ -248,12 +290,15 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(tickets > 0, CulturePass__noEarningsToWithdraw());
 
         uint256 ethAmount = tickets * s_exchangeRate;
-        require(address(this).balance >= ethAmount, CulturePass__insufficientFunds());
+        require(
+            address(this).balance >= ethAmount,
+            CulturePass__insufficientFunds()
+        );
 
         // Zero out BEFORE transferring — prevents reentrancy attack
         s_venueEarnings[msg.sender] = 0;
 
-        (bool success,) = payable(msg.sender).call{value: ethAmount}("");
+        (bool success, ) = payable(msg.sender).call{value: ethAmount}("");
         require(success, CulturePass__withdrawalFailed());
     }
 
@@ -261,7 +306,9 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @notice Returns accumulated ticket earnings and their ETH value for a venue.
      * @dev Yusuf Arslan - US-E4. View function, free to call.
      */
-    function getVenueEarnings(address _venueWallet) external view returns (uint256 tickets, uint256 ethValue) {
+    function getVenueEarnings(
+        address _venueWallet
+    ) external view returns (uint256 tickets, uint256 ethValue) {
         tickets = s_venueEarnings[_venueWallet];
         ethValue = s_exchangeRate > 0 ? tickets * s_exchangeRate : 0;
     }
@@ -270,4 +317,5 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @notice Allows the contract to receive ETH from pass purchases.
      * @dev Yusuf Arslan - Required so the contract can hold ETH to pay venues on withdrawal.
      */
+    receive() external payable {}
 }
