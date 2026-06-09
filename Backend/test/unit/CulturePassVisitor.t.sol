@@ -108,4 +108,20 @@ contract CulturePassVisitor is Test {
         vm.expectRevert(CulturePass.CulturePass__passExpired.selector);
         cPass.renewPass{value: 0.01 ether}();
     }
+
+    function testRedeemEntry() public {
+        cPass.registerVenue(1, "Louvre Museum", address(0x123), CulturePass.Category.Museum, 2, 3);
+
+        vm.startPrank(VISITOR);
+        cPass.purchasePass{value: 0.01 ether}(CulturePass.Tier.Explorer);
+        uint256 balanceBefore = ticketToken.balanceOf(VISITOR, 0);
+        console.log(balanceBefore);
+        cPass.redeemEntry(1);
+        uint256 balanceAfter = ticketToken.balanceOf(VISITOR, 0);
+        console.log(balanceAfter);
+        vm.stopPrank();
+
+        assertEq(balanceAfter, balanceBefore - 2);
+        assertEq(cPass.s_venueEarnings(address(0x123)), 2);
+    }
 }
