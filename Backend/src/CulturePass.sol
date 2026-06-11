@@ -28,7 +28,6 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     error CulturePass__passExpired();
     error CulturePass__noActivePass();
     error CulturePass__montlyLimitReachedForPass();
-    error CulturePass__montlyLimitReachedForVenue();
     error CulturePass__venueClosedForTheDay();
     error CulturePass__notVenueOwner();
     error CulturePass__noEarningsToWithdraw();
@@ -81,8 +80,6 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     mapping(address => UserPass) public s_userPasses; // Mapping of user addresses to their pass details
     mapping(address => mapping(uint256 => mapping(Category => uint256)))
         public s_categoryVisits; //user => month => category => visit count
-    mapping(address => mapping(uint256 => mapping(uint256 => uint256)))
-        public s_venueVisits; //user => month => venueId => visit count
     mapping(uint256 => mapping(uint256 => uint256)) public s_venueDailyVisits; //venueId => day => visit count
     mapping(address => uint256) public s_venueEarnings; // Mapping of venue addresses to their accumulated balances from ticket sales
 
@@ -91,7 +88,7 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      * @dev Rao Talha Shafqat - Initializes the contract. Until we don't have a proxy deployment setup, we can use the constructor to set up any necessary state variables. Once we switch to a proxy deployment, we will need to move this logic to an initializer function and disable the constructor.
      */
     constructor() {
-        //_disableInitializers();//This is for later do not uncomment.
+        _disableInitializers();
     }
 
     function initialize(
@@ -243,20 +240,41 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             CulturePass__montlyLimitReachedForPass()
         );
         require(
-            s_venueVisits[msg.sender][currentMonth][_venueId] < maxVisits,
-            CulturePass__montlyLimitReachedForVenue()
-        );
-        require(
             s_venueDailyVisits[_venueId][currentDay] < venue.dailyCapacity,
             CulturePass__venueClosedForTheDay()
         );
 
         c_ticketToken.burn(msg.sender, venue.entryPrice); //This will revert if Users do not have enough TicketTokens.
         s_categoryVisits[msg.sender][currentMonth][venue.category]++;
-        s_venueVisits[msg.sender][currentMonth][_venueId]++;
         s_venueDailyVisits[_venueId][currentDay]++;
 
         s_venueEarnings[venue.wallet] += venue.entryPrice;
+    }
+
+    //View Functions for Visitors
+
+    function getRemainingCategoryVisits(
+        address user,
+        Category category
+    ) external view returns (uint256) {
+        UserPass memory pass = s_userPasses[user];
+        uint256 currentMonth = block.timestamp / 30 days;
+        uint256 maxVisits = s_passTiers[pass.tier].monthlyVisitCap;
+        uint256 usedVisits = s_categoryVisits[user][currentMonth][category];
+        return maxVisits - usedVisits;
+    }
+
+    function getPassInfo(
+        address user
+    ) external view returns (Tier tier, uint256 expiry) {
+        UserPass memory pass = s_userPasses[user];
+        return (pass.tier, pass.expiry);
+    }
+
+    function getRemainingTicketTokens(
+        address user
+    ) external view returns (uint256) {
+        return c_ticketToken.balanceOf(user, 0);
     }
 
     /*Venue Functions*/
