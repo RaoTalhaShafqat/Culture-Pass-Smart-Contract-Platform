@@ -19,14 +19,27 @@ contract DeployCulturePass is Script {
     TicketToken public s_ticketToken;
     address public s_safeAddress;
 
-    function run(address _safeAddress) external returns (CulturePass, TicketToken) {
+    function run() external {
+        address safe = vm.envAddress("SAFE_ADDRESS");
+
+        deploy(safe);
+    }
+
+    function deploy(
+        address _safeAddress
+    ) public returns (CulturePass, TicketToken) {
         s_safeAddress = _safeAddress;
         vm.startBroadcast();
         s_ticketToken = new TicketToken();
         CulturePass impl = new CulturePass();
 
-        bytes memory data = abi.encodeCall(CulturePass.initialize, (address(s_ticketToken), s_safeAddress));
-        s_cPass = CulturePass(payable(address(new ERC1967Proxy(address(impl), data))));
+        bytes memory data = abi.encodeCall(
+            CulturePass.initialize,
+            (address(s_ticketToken), s_safeAddress)
+        );
+        s_cPass = CulturePass(
+            payable(address(new ERC1967Proxy(address(impl), data)))
+        );
         s_ticketToken.setCulturePassAddress(address(s_cPass));
         s_ticketToken.transferOwnership(s_safeAddress);
         vm.stopBroadcast();

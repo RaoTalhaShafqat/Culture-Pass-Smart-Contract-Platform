@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>CulturePass Admin</title>
+</head>
+
+<body>
+
+    <h1>CulturePass Admin Dashboard</h1>
+
+    <!-- CONNECT -->
+    <button id="connectBtn">Connect Wallet</button>
+    <p id="walletAddress">Not connected</p>
+
+    <hr />
+
+    <div style="display:flex; gap:50px;">
+
+        <div>
+            <!-- REGISTER VENUE FORM -->
+            <h2>Register Venue</h2>
+
+            <input id="venueId" placeholder="Venue ID" />
+            <br /><br />
+
+            <input id="venueName" placeholder="Venue Name" />
+            <br /><br />
+
+            <input id="venueWallet" placeholder="Wallet Address" />
+            <br /><br />
+
+            <select id="venueCategory">
+                <option value="0">Select Category</option>
+                <option value="1">Museum</option>
+                <option value="2">Theater</option>
+                <option value="3">Gallery</option>
+                <option value="4">Heritage</option>
+            </select>
+
+            <br /><br />
+
+            <input id="entryPrice" placeholder="In Tickets" />
+            <br /><br />
+
+            <input id="dailyCapacity" placeholder="Daily Capacity" />
+            <br /><br />
+
+            <button id="registerBtn">Register Venue</button>
+
+            <p id="registerStatus"></p>
+
+        </div>
+
+        <div>
+            <h2>View Venue</h2>
+
+            <input id="viewVenueId" placeholder="Venue ID" />
+
+            <button id="viewVenueBtn">View Venue</button>
+
+            <pre id="venueInfo"></pre>
+        </div>
+
+    </div>
+
+    <hr />
+
+    <h2>Remove Venue</h2>
+
+    <input id="removeVenueId" placeholder="Venue ID" />
+
+    <br /><br />
+
+    <button id="removeVenueBtn">Remove Venue</button>
+
+    <p id="removeStatus"></p>
+
+    <hr />
+
+    <div style="display:flex; gap:50px;">
+
+        <div>
+            <h2>Set Exchange Rate</h2>
+
+            <input id="exchangeRate" placeholder="ETH per ticket" />
+
+            <br /><br />
+
+            <button id="setExchangeRateBtn">Set Exchange Rate</button>
+            <p id="exchangeRateStatus"></p>
+
+        </div>
+
+        <div>
+
+            <h2>Current Exchange Rate</h2>
+
+            <button id="viewExchangeRateBtn">Refresh</button>
+
+            <p id="exchangeRateInfo">Not Loaded</p>
+
+        </div>
+
+    </div>
+
+    <hr />
+    <div style="display:flex; gap:50px;">
+
+        <div>
+            <h2>Set Pass Tier</h2>
+
+            <select id="tier">
+                <option value="1">Explorer</option>
+                <option value="2">Enthusiast</option>
+                <option value="3">Patron</option>
+            </select>
+
+            <br /><br />
+
+            <input id="monthlyTickets" placeholder="Monthly Tickets" />
+
+            <br /><br />
+
+            <input id="passPrice" placeholder="Price ETH" />
+
+            <br /><br />
+
+            <input id="monthlyVisitCap" placeholder="Monthly Visit Cap" />
+
+            <br /><br />
+
+            <button id="setPassTierBtn">Set Pass Tier</button>
+            <p id="passTierStatus"></p>
+        </div>
+
+        <div>
+            <h2>View Pass Tier</h2>
+
+            <select id="viewTier">
+                <option value="1">Explorer</option>
+                <option value="2">Enthusiast</option>
+                <option value="3">Patron</option>
+            </select>
+
+            <button id="viewPassTierBtn">View</button>
+
+            <pre id="passTierInfo"></pre>
+        </div>
+    </div>
+    <script type="module" src="/src/admin-ts.ts"></script>
+
+</body>
+
+</html>
