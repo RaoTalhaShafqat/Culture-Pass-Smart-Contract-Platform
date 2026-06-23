@@ -22,6 +22,7 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     error CulturePass__venueAlreadyExists();
     error CulturePass__falseCategory();
     error CulturePass__venueNotFound();
+    error CulturePass__venueAlreadyActive();
     error CulturePass__invalidTier();
     error CulturePass__insufficientFunds();
     error CulturePass__passStillNOTExpired();
@@ -156,6 +157,19 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
      */
     function setExchangeRate(uint256 _newRate) external onlyOwner {
         s_exchangeRate = _newRate;
+    }
+
+    /**
+     * @notice Admin function to reactivate a previously deactivated venue.
+     * @dev Yusuf Arslan - Counterpart to removeVenue (US-A2). Flips isActive back to true so the
+     *      venue can be redeemed again. Admin-only on purpose: a venue removed by the platform
+     *      must not be able to silently re-list itself.
+     */
+    function reactivateVenue(uint256 _venueId) external onlyOwner {
+        Venue storage venue = s_venues[_venueId];
+        require(venue.wallet != address(0), CulturePass__venueNotFound());
+        require(!venue.isActive, CulturePass__venueAlreadyActive());
+        venue.isActive = true;
     }
 
     /**
