@@ -1,4 +1,15 @@
-export const contractAddress = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
+interface ContractsConfig {
+    [chainId: number]: {
+        CulturePassProxy: string
+    }
+}
+
+export const chainsToCulturePass: ContractsConfig = {
+    31337: {
+        CulturePassProxy: "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
+    }
+}
+
 export const abi = [
     {
         "type": "constructor",
@@ -783,4 +794,4 @@ export const abi = [
             }
         ]
     }
-]
+] as const;    

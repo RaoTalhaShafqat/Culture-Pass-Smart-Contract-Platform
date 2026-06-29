@@ -10,6 +10,7 @@ import {
 import "viem/window"
 
 import { abi, contractAddress } from "./constants-ts.ts";
+import { supabase } from "./supabase";
 
 // ---------------------
 // STATE
@@ -24,6 +25,7 @@ const connectBtn = document.getElementById("connectBtn")!;
 const walletAddressEl = document.getElementById("walletAddress")!;
 const registerBtn = document.getElementById("registerBtn")!;
 const removeVenueBtn = document.getElementById("removeVenueBtn")!
+const reactivateVenueBtn = document.getElementById("reactivateVenueBtn")!
 const setExchangeRateBtn = document.getElementById("setExchangeRateBtn")!
 const setPassTierBtn = document.getElementById("setPassTierBtn")!
 const viewVenueBtn = document.getElementById("viewVenueBtn")!
@@ -33,6 +35,7 @@ const viewPassTierBtn = document.getElementById("viewPassTierBtn")
 connectBtn.addEventListener("click", connectWallet)
 registerBtn.addEventListener("click", registerVenue)
 removeVenueBtn.addEventListener("click", removeVenue)
+reactivateVenueBtn.addEventListener("click", reactivateVenue)
 setExchangeRateBtn.addEventListener("click", setExchangeRate)
 setPassTierBtn.addEventListener("click", setPassTier)
 viewVenueBtn.addEventListener("click", viewVenue)
@@ -138,7 +141,31 @@ async function registerVenue() {
         // ---------------------
         const hash = await walletClient.writeContract(request);
 
-        registerStatus.innerText = `Success: ${hash}`;
+        registerStatus.innerText = "Waiting for confirmation...";
+
+        await publicClient.waitForTransactionReceipt({
+            hash,
+        });
+
+        const { error: dbError } = await supabase
+            .from("venues")
+            .upsert({
+                venue_id: Number(data.venueId),
+                name: data.venueName,
+                wallet: data.wallet,
+                category: Number(data.category),
+                entry_price: Number(data.entryPrice),
+                daily_capacity: Number(data.dailyCapacity),
+                active: true,
+                tx_hash: hash,
+            }, { onConflict: 'venue_id' }); // <-- Tells Supabase to use venue_id as the merge key
+
+        if (dbError) {
+            registerStatus.innerText = dbError.message;
+            return;
+        }
+
+        registerStatus.innerText = "Venue registered successfully!";
     } catch (err: any) {
         console.error(err);
         const registerStatus = document.getElementById("registerStatus")!
@@ -174,10 +201,81 @@ async function removeVenue() {
         removeStatus.innerText = "Sending transaction..."
 
         const hash = await walletClient.writeContract(request)
-        removeStatus.innerText = `Success: ${hash}`
+
+
+        removeStatus.innerText = "Waiting for confirmation..."
+
+        await publicClient.waitForTransactionReceipt({ hash });
+
+        // ---------- UPDATE DATABASE ----------
+        const { error: dbError } = await supabase
+            .from("venues")
+            .update({ active: false, tx_hash: hash })
+            .eq("venue_id", Number(venueId));
+
+        if (dbError) {
+            removeStatus.innerText = "DB update error: " + dbError.message;
+            return;
+        }
+
+        removeStatus.innerText = `Venue ${venueId} removed (deactivated) – TX: ${hash}`;
     } catch (err: any) {
         const removeStatus = document.getElementById("removeStatus")!
         removeStatus.innerText = err.shortMessage || err.message
+    }
+}
+
+// ---------------------
+// REACTIVATE VENUE (NEW)
+// ---------------------
+async function reactivateVenue() {
+    try {
+        const venueId = (document.getElementById("reactivateVenueId") as HTMLInputElement).value
+        const reactivateStatus = document.getElementById("reactivateStatus")!
+        if (!venueId) {
+            reactivateStatus.innerText = "Venue ID required"
+            return
+        }
+
+        if (!walletClient) {
+            alert("Connect wallet first");
+            return;
+        }
+
+        reactivateStatus.innerText = "Simulating transaction..."
+
+        const { request } = await publicClient.simulateContract({
+            address: contractAddress,
+            abi: abi,
+            functionName: "reactivateVenue",
+            account: account,
+            chain: currentChain,
+            args: [BigInt(venueId)]
+        })
+
+        reactivateStatus.innerText = "Sending transaction..."
+
+        const hash = await walletClient.writeContract(request)
+
+        reactivateStatus.innerText = "Waiting for confirmation..."
+
+        await publicClient.waitForTransactionReceipt({ hash });
+
+        // ---------- UPDATE DATABASE ----------
+        const { error: dbError } = await supabase
+            .from("venues")
+            .update({ active: true, tx_hash: hash })
+            .eq("venue_id", Number(venueId));
+
+        if (dbError) {
+            reactivateStatus.innerText = "DB update error: " + dbError.message;
+            return;
+        }
+
+        reactivateStatus.innerText = `Venue ${venueId} reactivated – TX: ${hash}`;
+    } catch (err: any) {
+        const reactivateStatus = document.getElementById("reactivateStatus")!
+        reactivateStatus.innerText = err.shortMessage || err.message
     }
 }
 
@@ -284,7 +382,7 @@ async function viewVenue() {
             args: [BigInt(venueId)]
         })
 
-        document.getElementById("venueInfo")!.innerHTML = `
+        document.getElementById("venueInfo")!.innerText = `
             ID: ${venue[0]}
             Name: ${venue[1]}
             Wallet: ${venue[2]}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>CulturePass – Venue Dashboard</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2rem;
+        }
+
+        input,
+        select,
+        button {
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            font-size: 1rem;
+        }
+
+        .section {
+            border: 1px solid #ccc;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            max-width: 600px;
+        }
+
+        .status {
+            color: #555;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .flex {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎭 CulturePass – Venue Dashboard</h1>
+
+    <!-- CONNECT -->
+    <button id="connectBtn">Connect Wallet</button>
+    <p id="walletAddress">Not connected</p>
+
+    <hr />
+
+    <div class="flex">
+
+        <!-- UPDATE VENUE -->
+        <div class="section">
+            <h2>✏️ Update Venue</h2>
+            <input id="updateVenueId" placeholder="Venue ID" />
+            <br />
+            <input id="newEntryPrice" placeholder="New Entry Price (in tickets)" />
+            <br />
+            <input id="newDailyCapacity" placeholder="New Daily Capacity" />
+            <br />
+            <button id="updateVenueBtn">Update Venue</button>
+            <p id="updateStatus" class="status"></p>
+        </div>
+
+        <!-- VIEW EARNINGS -->
+        <div class="section">
+            <h2>💰 View Earnings</h2>
+            <p>
+                <input id="viewWallet" placeholder="Venue wallet (optional)" style="width:80%" />
+                <small>Leave empty to use connected wallet</small>
+            </p>
+            <button id="viewEarningsBtn">View Earnings</button>
+            <pre id="earningsInfo" class="status">Not loaded</pre>
+        </div>
+
+        <!-- WITHDRAW -->
+        <div class="section">
+            <h2>🏦 Withdraw Earnings</h2>
+            <p>Withdraw all accumulated tickets converted to ETH.</p>
+            <button id="withdrawBtn">Withdraw</button>
+            <p id="withdrawStatus" class="status"></p>
+        </div>
+
+    </div>
+
+    <script type="module" src="/src/venue-ts.ts"></script>
+
+</body>
+
+</html>
