@@ -67,15 +67,28 @@
 
     <hr />
 
-    <h2>Remove Venue</h2>
+    <!-- REMOVE + REACTIVATE VENUE (side‑by‑side) -->
+    <div style="display:flex; gap:50px;">
 
-    <input id="removeVenueId" placeholder="Venue ID" />
+        <!-- LEFT: Remove Venue -->
+        <div>
+            <h2>Remove Venue</h2>
+            <input id="removeVenueId" placeholder="Venue ID" />
+            <br /><br />
+            <button id="removeVenueBtn">Remove Venue</button>
+            <p id="removeStatus"></p>
+        </div>
 
-    <br /><br />
+        <!-- RIGHT: Reactivate Venue (NEW) -->
+        <div>
+            <h2>Reactivate Venue</h2>
+            <input id="reactivateVenueId" placeholder="Venue ID" />
+            <br /><br />
+            <button id="reactivateVenueBtn">Reactivate Venue</button>
+            <p id="reactivateStatus"></p>
+        </div>
 
-    <button id="removeVenueBtn">Remove Venue</button>
-
-    <p id="removeStatus"></p>
+    </div>
 
     <hr />
 
@@ -106,6 +119,7 @@
     </div>
 
     <hr />
+
     <div style="display:flex; gap:50px;">
 
         <div>
@@ -148,7 +162,9 @@
 
             <pre id="passTierInfo"></pre>
         </div>
+
     </div>
+
     <script type="module" src="/src/admin-ts.ts"></script>
 
 </body>
