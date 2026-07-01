@@ -34,6 +34,9 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     error CulturePass__noEarningsToWithdraw();
     error CulturePass__withdrawalFailed();
     error CulturePass__exchangeRateNotSet();
+    error CulturePass__notAnUpgrade();
+    error CulturePass__ticketPriceNotSet();
+    error CulturePass__ticketPriceTooLow();
 
     TicketToken public c_ticketToken;
 
@@ -84,6 +87,9 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     mapping(uint256 => mapping(uint256 => uint256)) public s_venueDailyVisits; //venueId => day => visit count
     mapping(address => uint256) public s_venueEarnings; // Mapping of venue addresses to their accumulated balances from ticket sales
 
+    // Ticket price (in TicketTokens) to buy/upgrade into a tier using reclaimed tickets.
+    // APPENDED to the end of storage on purpose: never insert above existing vars.
+    mapping(Tier => uint256) public s_tierTicketPrice; // Tier => ticket cost
     /**
      * @notice Constructor for the CulturePass contract.
      * @dev Rao Talha Shafqat - Initializes the contract. Until we don't have a proxy deployment setup, we can use the constructor to set up any necessary state variables. Once we switch to a proxy deployment, we will need to move this logic to an initializer function and disable the constructor.
@@ -190,6 +196,15 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         });
     }
 
+    function setTierTicketPrice(
+    Tier _tier,
+    uint256 _ticketPrice) external onlyOwner {
+    require(_tier != Tier.None, CulturePass__invalidTier());
+    require(
+        _ticketPrice >= s_passTiers[_tier].monthlyTickets,
+        CulturePass__ticketPriceTooLow());
+    s_tierTicketPrice[_tier] = _ticketPrice;}
+
     /*Visitor Functions*/
     /**
      * @notice Function for visitors to purchase a pass.
@@ -231,6 +246,72 @@ contract CulturePass is Initializable, OwnableUpgradeable, UUPSUpgradeable {
             s_passTiers[userPass.tier].monthlyTickets
         );
         s_userPasses[msg.sender].expiry += 30 days; // Extend the expiry by another month
+    }
+
+    function purchasePassWithTickets(Tier _tier) external {
+        uint256 ticketPrice = s_tierTicketPrice[_tier];
+        require(ticketPrice > 0, CulturePass__ticketPriceNotSet());
+
+        UserPass memory userPass = s_userPasses[msg.sender];
+        require(
+            userPass.expiry < block.timestamp,
+            CulturePass__passStillNOTExpired()
+    );
+
+        c_ticketToken.burn(msg.sender, ticketPrice); // reverts if the caller lacks enough tickets
+        c_ticketToken.mint(msg.sender, s_passTiers[_tier].monthlyTickets);
+        s_userPasses[msg.sender] = UserPass({
+            tier: _tier,
+            expiry: block.timestamp + 30 days
+    });}
+
+    function upgradePass(Tier _newTier) external payable {
+        UserPass memory userPass = s_userPasses[msg.sender];
+        require(block.timestamp < userPass.expiry, CulturePass__passExpired());
+        require(
+            uint8(_newTier) > uint8(userPass.tier),
+            CulturePass__notAnUpgrade()
+        );
+
+        uint256 priceDiff = s_passTiers[_newTier].priceETH -
+            s_passTiers[userPass.tier].priceETH;
+        require(msg.value == priceDiff, CulturePass__insufficientFunds());
+
+        _grantUpgrade(userPass.tier, _newTier);
+    }
+
+    function upgradePassWithTickets(Tier _newTier) external {
+        UserPass memory userPass = s_userPasses[msg.sender];
+        require(block.timestamp < userPass.expiry, CulturePass__passExpired());
+        require(
+            uint8(_newTier) > uint8(userPass.tier),
+            CulturePass__notAnUpgrade()
+        );
+        require(
+            s_tierTicketPrice[_newTier] > 0,
+            CulturePass__ticketPriceNotSet()
+        );
+
+        uint256 ticketCost = s_tierTicketPrice[_newTier] -
+            s_tierTicketPrice[userPass.tier];
+        c_ticketToken.burn(msg.sender, ticketCost); // reverts if the caller lacks enough tickets
+
+        _grantUpgrade(userPass.tier, _newTier);
+    }
+
+    function cancelMembership() external {
+        UserPass memory userPass = s_userPasses[msg.sender];
+        require(block.timestamp < userPass.expiry, CulturePass__noActivePass());
+        s_userPasses[msg.sender] = UserPass({tier: Tier.None, expiry: 0});
+    }
+
+    function _grantUpgrade(Tier _from, Tier _to) internal {
+        uint256 ticketDiff = s_passTiers[_to].monthlyTickets -
+            s_passTiers[_from].monthlyTickets;
+        if (ticketDiff > 0) {
+            c_ticketToken.mint(msg.sender, ticketDiff);
+        }
+        s_userPasses[msg.sender].tier = _to;
     }
 
     /**
