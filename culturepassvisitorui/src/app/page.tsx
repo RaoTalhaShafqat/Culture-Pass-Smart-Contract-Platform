@@ -9,6 +9,7 @@ import { TierCard } from "@/components/TierCard";
 import { ALL_TIERS } from "@/utils/tiers";
 import { RenewButton } from "@/components/RenewButton";
 import { VisitLimitsPanel } from "@/components/VisitLimitsPanel";
+import { VenueList } from "@/components/VenueList";
 
 export default function Home() {
 
@@ -144,6 +145,9 @@ export default function Home() {
       </section>
       <section className="mt-8">
         <VisitLimitsPanel refreshKey={refreshKey} hasActivePass={hasActivePass} />
+      </section>
+      <section className="mt-8">
+        <VenueList />
       </section>
     </main>
   );
