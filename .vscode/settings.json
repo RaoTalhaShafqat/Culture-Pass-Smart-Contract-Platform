@@ -1,0 +1,6 @@
+{
+  // Use the project's TypeScript (5.9.3) instead of VS Code's old bundled 4.9.4,
+  // which can't understand React 19 / modern syntax and shows false red errors.
+  "typescript.tsdk": "culturepassvisitorui/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
+}
