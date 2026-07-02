@@ -48,6 +48,13 @@ export const abi = [
     },
     {
         "type": "function",
+        "name": "cancelMembership",
+        "inputs": [],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "getPassInfo",
         "inputs": [
             {
@@ -193,6 +200,19 @@ export const abi = [
         ],
         "outputs": [],
         "stateMutability": "payable"
+    },
+    {
+        "type": "function",
+        "name": "purchasePassWithTickets",
+        "inputs": [
+            {
+                "name": "_tier",
+                "type": "uint8",
+                "internalType": "enum CulturePass.Tier"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
     },
     {
         "type": "function",
@@ -358,6 +378,25 @@ export const abi = [
     },
     {
         "type": "function",
+        "name": "s_tierTicketPrice",
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint8",
+                "internalType": "enum CulturePass.Tier"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "stateMutability": "view"
+    },
+    {
+        "type": "function",
         "name": "s_userPasses",
         "inputs": [
             {
@@ -515,6 +554,24 @@ export const abi = [
     },
     {
         "type": "function",
+        "name": "setTierTicketPrice",
+        "inputs": [
+            {
+                "name": "_tier",
+                "type": "uint8",
+                "internalType": "enum CulturePass.Tier"
+            },
+            {
+                "name": "_ticketPrice",
+                "type": "uint256",
+                "internalType": "uint256"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
         "name": "transferOwnership",
         "inputs": [
             {
@@ -544,6 +601,32 @@ export const abi = [
                 "name": "_newDailyCapacity",
                 "type": "uint256",
                 "internalType": "uint256"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "nonpayable"
+    },
+    {
+        "type": "function",
+        "name": "upgradePass",
+        "inputs": [
+            {
+                "name": "_newTier",
+                "type": "uint8",
+                "internalType": "enum CulturePass.Tier"
+            }
+        ],
+        "outputs": [],
+        "stateMutability": "payable"
+    },
+    {
+        "type": "function",
+        "name": "upgradePassWithTickets",
+        "inputs": [
+            {
+                "name": "_newTier",
+                "type": "uint8",
+                "internalType": "enum CulturePass.Tier"
             }
         ],
         "outputs": [],
@@ -687,6 +770,11 @@ export const abi = [
     },
     {
         "type": "error",
+        "name": "CulturePass__notAnUpgrade",
+        "inputs": []
+    },
+    {
+        "type": "error",
         "name": "CulturePass__notVenueOwner",
         "inputs": []
     },
@@ -698,6 +786,16 @@ export const abi = [
     {
         "type": "error",
         "name": "CulturePass__passStillNOTExpired",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "CulturePass__ticketPriceNotSet",
+        "inputs": []
+    },
+    {
+        "type": "error",
+        "name": "CulturePass__ticketPriceTooLow",
         "inputs": []
     },
     {
