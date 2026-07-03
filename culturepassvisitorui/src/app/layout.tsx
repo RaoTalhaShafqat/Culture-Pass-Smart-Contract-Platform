@@ -46,7 +46,7 @@ export default function RootLayout({
             <div className="flex items-center gap-4">
               <div className="h-35 w-35 relative flex-shrink-0 -ml-14">
                 <Image
-                  src="/logo.png"
+                  src="./logo.png"
                   alt="CULTRA CHAIN logo"
                   fill
                   className="object-contain"
