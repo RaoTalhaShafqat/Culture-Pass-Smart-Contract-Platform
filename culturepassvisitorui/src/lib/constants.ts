@@ -7,8 +7,12 @@ interface ContractsConfig {
 export const chainsToCulturePass: ContractsConfig = {
     31337: {
         CulturePassProxy: "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
+    },
+
+    11155111: {
+        CulturePassProxy: "0xddef441b6504d8e8350b5ec33c434b02481a7a89"
     }
-}
+};
 
 export const abi = [
     {
