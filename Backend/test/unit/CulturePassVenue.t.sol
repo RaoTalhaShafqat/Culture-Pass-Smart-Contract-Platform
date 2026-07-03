@@ -212,7 +212,7 @@ contract CulturePassVenue is Test {
         assertEq(ethValue, 0);
     }
 
-    function testGetVenueEarningsZeroForUnknownWallet() public {
+    function testGetVenueEarningsZeroForUnknownWallet() public view {
         (uint256 tickets, uint256 ethValue) = cPass.getVenueEarnings(STRANGER);
         assertEq(tickets, 0);
         assertEq(ethValue, 0);
