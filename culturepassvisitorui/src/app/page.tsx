@@ -8,12 +8,15 @@ import { Hero } from "@/components/hero";
 import { TierCard } from "@/components/TierCard";
 import { ALL_TIERS } from "@/utils/tiers";
 import { RenewButton } from "@/components/RenewButton";
+import { UpgradeButton } from "@/components/UpgradeButton";
+import { CancelMembershipButton } from "@/components/CancelMembershipButton";
 import { VisitLimitsPanel } from "@/components/VisitLimitsPanel";
 import { VenueList } from "@/components/VenueList";
 
 export default function Home() {
 
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time mount guard for hydration
   useEffect(() => setMounted(true), []);
 
   const { address, isConnected, chainId } = useAccount();
@@ -25,6 +28,7 @@ export default function Home() {
   const chainNow =
   latestBlock?.timestamp !== undefined
     ? Number(latestBlock.timestamp) * 1000
+    // eslint-disable-next-line react-hooks/purity -- wall-clock fallback until the first block loads
     : Date.now();
 
   const contractAddress = chainId
@@ -65,7 +69,7 @@ export default function Home() {
     ? tierLabel(passInfo[0])
     : "None";
   const heroTickets = remainingTickets !== undefined ? String(remainingTickets) : "0";
-  const heroDays =
+  const remainingDays =
   hasActivePass && passInfo && passInfo[1] > 0n
     ? Math.max(
         0,
@@ -73,8 +77,9 @@ export default function Home() {
           (Number(passInfo[1]) * 1000 - chainNow) /
             (1000 * 60 * 60 * 24)
         )
-      ).toString()
-    : "0";
+      )
+    : 0;
+  const heroDays = remainingDays.toString();
 
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -126,10 +131,18 @@ export default function Home() {
             <h2 className="text-xl font-bold">Choose a tier</h2>
           </div>
           {hasActivePass && passInfo && (
-            <RenewButton
-              currentTier={passInfo[0]}
-              onRenewSuccess={handleSuccess}
-            />
+            <div className="flex items-end gap-2 flex-wrap justify-end">
+              <UpgradeButton
+                currentTier={passInfo[0]}
+                remainingDays={remainingDays}
+                onUpgradeSuccess={handleSuccess}
+              />
+              <RenewButton
+                currentTier={passInfo[0]}
+                onRenewSuccess={handleSuccess}
+              />
+              <CancelMembershipButton onCancelSuccess={handleSuccess} />
+            </div>
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

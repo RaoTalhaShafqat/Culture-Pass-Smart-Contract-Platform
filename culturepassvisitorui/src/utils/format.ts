@@ -41,7 +41,16 @@ export function friendlyErrorMessage(error: { message: string } | null | undefin
     if (message.includes("CulturePass__exchangeRateNotSet")) {
         return "Pricing hasn't been configured yet. Please check back later.";
     }
+    if (message.includes("CulturePass__notAnUpgrade")) {
+        return "You can only upgrade to a higher tier.";
+    }
+    if (message.includes("CulturePass__ticketPriceNotSet")) {
+        return "Ticket pricing isn't set for this tier yet.";
+    }
+    if (message.includes("CulturePass__noActivePass")) {
+        return "You don't have an active membership.";
+    }
 
     // Fallback for anything we haven't specifically mapped yet
-    return "This purchase can't be completed right now.";
+    return "This action can't be completed right now.";
 }
