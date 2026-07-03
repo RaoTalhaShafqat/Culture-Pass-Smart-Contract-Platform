@@ -13,6 +13,15 @@
     <!-- CONNECT -->
     <button id="connectBtn">Connect Wallet</button>
     <p id="walletAddress">Not connected</p>
+    <p id="networkInfo" style="max-width:800px; color:#444;"></p>
+
+    <!-- SAFE QUEUE (only visible on chains where the Safe owns the contract) -->
+    <div id="safeSection" style="display:none; border:1px solid #ccc; padding:10px 16px; max-width:800px;">
+        <h2>Safe Queue</h2>
+        <p id="safeMeta"></p>
+        <button id="syncSafeBtn">Sync executed transactions</button>
+        <ul id="pendingSafeList"></ul>
+    </div>
 
     <hr />
 

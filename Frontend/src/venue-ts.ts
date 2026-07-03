@@ -2,22 +2,25 @@ import {
     createWalletClient,
     createPublicClient,
     custom,
-    defineChain,
     formatEther,
-    type WalletClient,
+    type Chain,
 } from "viem";
 import "viem/window";
 
-import { abi, contractAddress } from "./constants-ts";
+import { abi, type ChainDeployment } from "./constants-ts.ts";
+import { resolveChain, getDeployment } from "./chains.ts";
 import { supabase } from "./supabase"; // <-- IMPORT SUPABASE
 
 // ---------------------
 // STATE
 // ---------------------
+// Venue functions are NOT owner-gated, so they always call the proxy directly —
+// the only chain-specific part is WHICH proxy (Anvil vs Sepolia deployment).
 let walletClient: any;
 let publicClient: any;
 let account: `0x${string}`;
-let currentChain: ReturnType<typeof defineChain>;
+let currentChain: Chain;
+let deployment: ChainDeployment | null = null;
 
 // ---------------------
 // DOM refs
@@ -60,28 +63,37 @@ async function connectWallet() {
 
     const addresses = await walletClient.requestAddresses();
     account = addresses[0];
-    currentChain = await getCurrentChain(walletClient);
+
+    const chainId = await walletClient.getChainId();
+    currentChain = resolveChain(chainId);
+    deployment = getDeployment(chainId);
 
     publicClient = createPublicClient({
         transport: custom(window.ethereum),
     });
 
-    walletAddressEl.innerText = `Connected: ${account}`;
+    if (!deployment) {
+        walletAddressEl.innerText =
+            `Connected: ${account} — ⚠️ unsupported network (chain ${chainId}). Switch to Anvil or Sepolia.`;
+        return;
+    }
+
+    walletAddressEl.innerText = `Connected: ${account} (${deployment.name})`;
+
+    // Chain switches change the target proxy: reload for a clean slate.
+    (window.ethereum as any).on?.("chainChanged", () => window.location.reload());
 }
 
-// ---------------------
-// Get chain info
-// ---------------------
-async function getCurrentChain(client: WalletClient): Promise<ReturnType<typeof defineChain>> {
-    const chainId = await client.getChainId();
-    return defineChain({
-        id: chainId,
-        name: "Custom Chain",
-        nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-        rpcUrls: {
-            default: { http: ["http://localhost:8545"] },
-        },
-    });
+function requireDeployment(statusEl: HTMLElement): `0x${string}` | null {
+    if (!walletClient) {
+        alert("Connect wallet first");
+        return null;
+    }
+    if (!deployment) {
+        statusEl.innerText = "Unsupported network — switch to Anvil or Sepolia.";
+        return null;
+    }
+    return deployment.CulturePassProxy;
 }
 
 // ---------------------
@@ -89,10 +101,8 @@ async function getCurrentChain(client: WalletClient): Promise<ReturnType<typeof 
 // ---------------------
 async function updateVenue() {
     try {
-        if (!walletClient) {
-            alert("Connect wallet first");
-            return;
-        }
+        const proxy = requireDeployment(updateStatus);
+        if (!proxy) return;
 
         const venueId = (document.getElementById("updateVenueId") as HTMLInputElement).value;
         const newPrice = (document.getElementById("newEntryPrice") as HTMLInputElement).value;
@@ -111,7 +121,7 @@ async function updateVenue() {
 
         // ---------- SIMULATE CONTRACT ----------
         const { request } = await publicClient.simulateContract({
-            address: contractAddress,
+            address: proxy,
             abi,
             functionName: "updateVenue",
             account,
@@ -127,7 +137,7 @@ async function updateVenue() {
 
         // ---------- READ UPDATED DATA FROM CHAIN ----------
         const updated = await publicClient.readContract({
-            address: contractAddress,
+            address: proxy,
             abi,
             functionName: "s_venues",
             args: [BigInt(venueId)],
@@ -163,10 +173,8 @@ async function updateVenue() {
 // ---------------------
 async function viewEarnings() {
     try {
-        if (!publicClient) {
-            alert("Connect wallet first");
-            return;
-        }
+        const proxy = requireDeployment(earningsInfo);
+        if (!proxy) return;
 
         let walletInput = (document.getElementById("viewWallet") as HTMLInputElement).value.trim();
         const targetWallet = walletInput || account;
@@ -177,7 +185,7 @@ async function viewEarnings() {
         }
 
         const [tickets, ethValue] = await publicClient.readContract({
-            address: contractAddress,
+            address: proxy,
             abi,
             functionName: "getVenueEarnings",
             args: [targetWallet as `0x${string}`],
@@ -198,15 +206,13 @@ async function viewEarnings() {
 // ---------------------
 async function withdrawEarnings() {
     try {
-        if (!walletClient) {
-            alert("Connect wallet first");
-            return;
-        }
+        const proxy = requireDeployment(withdrawStatus);
+        if (!proxy) return;
 
         withdrawStatus.innerText = "Simulating transaction...";
 
         const { request } = await publicClient.simulateContract({
-            address: contractAddress,
+            address: proxy,
             abi,
             functionName: "withdrawEarnings",
             account,
@@ -224,7 +230,7 @@ async function withdrawEarnings() {
 
         // Refresh earnings display (since they are now zero)
         const [tickets, ethValue] = await publicClient.readContract({
-            address: contractAddress,
+            address: proxy,
             abi,
             functionName: "getVenueEarnings",
             args: [account],
