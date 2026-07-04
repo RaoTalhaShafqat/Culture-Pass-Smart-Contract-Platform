@@ -1,0 +1,95 @@
+# Deploys the visitor UI (culturepassvisitorui/, a pnpm + Next.js app living in a
+# monorepo subfolder) to GitHub Pages.
+#
+# Differences from GitHub's stock Next.js template (which fails on this repo):
+#   - no package-manager "detection": the repo root has no package.json and the
+#     app uses pnpm, so the template's yarn/npm probing always exits 1
+#   - pnpm is installed explicitly; caching keys point at the subfolder lockfile
+#   - static export is configured in culturepassvisitorui/next.config.ts (the
+#     template's config injection can't parse next.config.ts), activated via the
+#     GITHUB_PAGES env var, with the base path taken from configure-pages
+#   - the NEXT_PUBLIC_* env vars are provided at build time; without them the
+#     app throws during prerender (RainbowKit requires a WalletConnect project id)
+#
+# Optional repo Actions variables (Settings -> Secrets and variables -> Actions
+# -> Variables): NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+# NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID. The fallbacks below are the public
+# values that already ship in the client bundle, so builds work out of the box.
+
+name: Deploy Next.js site to Pages
+
+on:
+  push:
+    branches: ["development"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: culturepassvisitorui
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: culturepassvisitorui/pnpm-lock.yaml
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Restore Next.js cache
+        uses: actions/cache@v4
+        with:
+          path: culturepassvisitorui/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('culturepassvisitorui/pnpm-lock.yaml') }}-${{ hashFiles('culturepassvisitorui/src/**') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('culturepassvisitorui/pnpm-lock.yaml') }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build with Next.js (static export)
+        run: pnpm exec next build
+        env:
+          GITHUB_PAGES: "true"
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://hwyetplwmhavirmjrypt.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_VKNcdR4QYVGho_809b2QJw_3k20TdA2' }}
+          NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${{ vars.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo' }}
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: culturepassvisitorui/out
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

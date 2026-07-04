@@ -1,4 +1,37 @@
-export const contractAddress = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
+// Per-chain deployment map. Admin functions on chains with a `safe` entry must be
+// routed through that Safe (the Safe is the contract owner there); chains without
+// one (local Anvil) are called directly by the connected EOA, exactly as before.
+export interface SafeConfig {
+    address: `0x${string}`;
+    // Safe Transaction Service base for this chain (new api.safe.global gateway).
+    txServiceBase: string;
+    // Deep link so the admin can open the queue and approve.
+    appUrl: string;
+}
+
+export interface ChainDeployment {
+    name: string;
+    CulturePassProxy: `0x${string}`;
+    safe?: SafeConfig;
+}
+
+export const chainsToCulturePass: Record<number, ChainDeployment> = {
+    31337: {
+        name: "Anvil (local)",
+        CulturePassProxy: "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0",
+    },
+    11155111: {
+        name: "Sepolia",
+        CulturePassProxy: "0xddef441b6504d8e8350b5ec33c434b02481a7a89",
+        safe: {
+            address: "0xCb66c52F21386265B95DD912033bF94E7ac9C280",
+            txServiceBase: "https://api.safe.global/tx-service/sep",
+            appUrl:
+                "https://app.safe.global/transactions/queue?safe=sep:0xCb66c52F21386265B95DD912033bF94E7ac9C280",
+        },
+    },
+};
+
 export const abi = [
     {
         "type": "constructor",
@@ -881,4 +914,4 @@ export const abi = [
             }
         ]
     }
-]
+] 
