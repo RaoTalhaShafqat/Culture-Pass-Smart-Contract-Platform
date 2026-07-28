@@ -1,135 +1,58 @@
-🎭 CulturePass
+# Extended ReadMe
 
-📌 Overview
+## What is this Project?
+Culture Pass is a decentralized cultural-access platform that links museums, galleries, theatres and heritage sites through a single blockchain-based membership. Visitors purchase a monthly pass, receive ERC-1155 ticket credits, and redeem entries across every registered venue.
 
-CulturePass is a city-wide cultural access network powered by smart contracts. It enables visitors to explore museums, galleries, theaters, concert halls, and heritage sites using a unified on-chain ticketing system. Users purchase a monthly pass that mints ERC-1155 compatible Tickets to their wallet. These tickets can be redeemed across registered venues, while smart contracts enforce strict monthly and daily access limits. Venues receive on-chain payments and can withdraw earnings at the end of each billing cycle.
+ ## Quickstart
 
-🏗️ System Architecture
+ ```
+ git clone https://github.com/RaoTalhaShafqat/Culture-Pass-Smart-Contract-Platform.git
+ cd Culture-Pass-Smart-Contract-Platform
+ forge build
+ ``` 
 
-The platform consists of three main components:
+## Architecture & Decisions 
 
-Pass System → Handles subscription tiers and ticket minting
+1. In order to solve the Data Persistency across different version of our Business Logic Contract we implemented a **Delegation system with Proxy**. This problem of Data Persistency lead us to this component of our system. Plus this makes Frontend more simpler to implement and we do not need a separate Contract Registery. 
+2. In order to solve the admin control problem and to remove control from a single entity we integrated a **Multi-Sig Wallet** which make the Admin side more decentralised. 
+3. In order to solve a gas problem and to have a more gas efficient system we decided an off chain component which is a **Database(Supabase)** to store a list of registered venues off chain. So on chain we store only a map of venues which is gas efficient in nature and for us to loop through a list of venues for the Frontend we have this off chain Database component.
+4. For the purpose of simplicity we made **three different Frontends** for three different Stakeholders (Admin, Visitor & Venue).
 
-EntryLedger → Enforces visit limits and daily capacity rules
+## How to run the project
+- Please refer to Readme of every single directory to understand how to deploy which component.
+- For testing purpose you can also refer to our github page deployment where you can Test our Visitor Frontend on local Chain or Sepolia.
 
-Venue Registry → Manages whitelisted cultural venues
+## AI Usage
+1. AI was a extremly important part of the project as it was used as an assistent. (*70% Code is handwritten with AI Suggestions*)
+2. AI agents such as Claude Fable 5 was used in some parts which were a bit out of the scope of this course such parts include Safewallet integration & some Supabase Integration logic. (*30% Code by Agent*)
 
-👥 Stakeholders
+## Work Distribution
+  *Three Developers worked on this project (Rao Talha, Alp & Yusuf).*
+1. Rao Talha was responsible for the following:
+- Visitor and Admin Business Functions.
+- Frontend for Admin and Venues.
+- Proxy and Safewallet.
+1. Alp was responsible for the following:
+- Database(Supabase) - list of Venues. 
+- Qr Code logic and Scanning logic in VisitorUI.
+- 40% implementation of VisitorUI.
+1. Yusuf was responsible for the following:
+- Venue Business Functions.
+- Implementing Upgrade and Cancel Subscription on VisitorUI so roughly about 40% of implementation of VisitorUI. 
+- Securing contract from Reentrancy Attacks. 
 
-🛠️ Admin (CulturePass Foundation)
+In between when Implementing VisitorUI Rao worked roughly 20% on the UI also.
 
-Deploys and manages the platform
-Whitelists and removes venues
-Defines pass tiers and pricing
-Sets ticket-to-ETH exchange rate
+## Achievement
+*Things we are proud that we did:*
+1.  We delivered almost production ready system.
+2.  We thought about state Management.
+3.  We tried to load some things off Chain because of Gas Problem.
+4.  We took away the single point of control from Admin by doing a Multi-sig wallet.
+5.  We delivered a pleasant Frontend for Visitors.
+6.  We tested the system against a common Reentrancy Attack.
+7.  We implemented a Mock Multi-sig Safe for the local Development.
 
-🎟️ Visitor
-
-Purchases monthly passes
-Receives ERC-1155 Tickets
-Redeems entry at venues
-Enforced by monthly and daily limits
-
-🏛️ Venue
-
-Registers cultural locations
-Sets entry price and daily capacity
-Receives ticket payments
-Withdraws accumulated earnings
-
-📖 User Stories
-
-🛠️ Admin
-
-US-A1: Register and whitelist a venue with metadata (address, name, ID, category, daily capacity)
-
-US-A2: Remove a venue from whitelist
-
-US-A3: Define pass tiers and ticket pricing
-
-🎟️ Visitor
-
-US-V1: Purchase a monthly pass and receive Tickets
-
-US-V2: Renew pass before expiry
-
-US-V3: Be blocked from redeeming if pass is expired
-
-US-V4: Redeem entry using tickets
-
-US-V5: Be blocked after reaching monthly visit caps per category or venue
-
-US-V6: Be blocked if venue reaches daily capacity
-
-US-V7: View ticket balance, expiry, and remaining visit limits
-
-🏛️ Venue
-
-US-E1: Set and update entry price and daily capacity
-
-US-E2: Receive ticket payments on visitor entry
-
-US-E3: Withdraw accumulated earnings in ETH
-
-US-E4: View total earnings before withdrawal
-
-🔁 Key Rules & Constraints
-
-📅 Monthly Limits
-
-Reset at the start of each calendar month
-
-Enforced per: Venue category & Individual venue
-
-🏟️ Daily Capacity
-
-Each venue sets a maximum visitor limit per day
-Once reached, no further entries are allowed that day
-
-❌ Entry Reverts If:
-
-Pass is expired
-
-Monthly limit exceeded
-
-Venue capacity reached
-
-Insufficient ticket balance
-
-💸 Payment Flow
-
-Visitor purchases pass with ETH
-
-Contract mints ERC-1155 Tickets
-
-Visitor redeems tickets at venue
-
-Tickets are recorded as earnings
-
-Venue withdraws ETH at end of billing cycle
-
-🔐 Security Model
-
-No centralized custody of user funds
-
-All payments handled by smart contracts
-
-Whitelisted venue system prevents abuse
-
-On-chain enforcement of all limits
-
-🚀 Future Improvements
-
-Dynamic pricing based on demand
-
-NFT-based loyalty rewards
-
-Off-chain indexing for analytics dashboard
-
-Multi-city expansion support
-
-DAO governance for admin control
-
-📦 Status
-
-🟡 Project is currently in development — more features coming soon.
+## Poster Session
+- Our System need Technically one node to run which is a local Anvil Node.
+- Our System can run also on multiple Nodes as we have deployed it to Sepolia and Sepolia has multiple Nodes running on it. 

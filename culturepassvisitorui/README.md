@@ -44,5 +44,9 @@ This is something that you will see all around HTML for styling purposes so do n
 Make sure to run Anvil node parallel to vite server by running `pnpm anvil` or `npm anvil`.
 
 ## Dependencies
-Cloning this in your pc will bring all the red lines over the project as you might have to install the dependencies for this project. Please refer to package.json to know more about dependencies of this project.
+Cloning this in your pc will bring all the red lines over the project as you might have to install the dependencies for this project. Please refer to package.json to know more about dependencies of this project and run `pnpm install`.
+
+## Scanner
+In order for you to scan the Qr-Code generated from redeeming entry please open the following link https://raotalhashafqat.github.io/Culture-Pass-Smart-Contract-Platform/scan/ or when you do `pnpm dev` http://localhost:3000/scan.
+
 
