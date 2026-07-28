@@ -2,10 +2,12 @@
 
 ## Getting Started
  - In order to Test the frontEnd you need to run the following commands:
-  
-   1. Loads an Anvil Chain with Proxy Deployed with CulturePass:
+   
+   1. Install dependencies:
+   `pnpm install` will install all the dependencies from package.json file.
+   2. Loads an Anvil Chain with Proxy Deployed with CulturePass:
    `pnpm anvil` 
-   2. Then run Vite:
+   3. Then run Vite:
    `pnpm vite`
 
 ## AdminDashboard

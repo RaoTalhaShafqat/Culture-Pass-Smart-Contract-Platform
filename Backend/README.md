@@ -27,14 +27,10 @@ This is a code base for Culture-Pass-Platform done as an assignment for Internsh
   forge Version: 1.7.1
   Build Timestamp: 2026-05-08T07:50:55.527285345Z
   ```
-
- ## Quickstart
-
- ```
- git clone https://github.com/RaoTalhaShafqat/Culture-Pass-Smart-Contract-Platform.git
- cd Culture-Pass-Smart-Contract-Platform
- forge build
- ``` 
+ ## OneLinearDeploymentCommand
+ In order for you to deploy this Proxy system on anvil you need to run the following command:
+ `forge script script/DeployCulturePass.s.sol:DeployCulturePass --rpc-url http://127.0.0.1:8545 --private-key $(PRIVATE_KEY) --broadcast` 
+ make sure that you have a .env in your project which contains SAFE_ADDRESS & PRIVATE_KEY and make sure before you run this command load your .env file in the terminal.
 
  ## Developernote
 
